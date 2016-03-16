@@ -1,7 +1,8 @@
 name: "CaffeNet"
+
 layer {
   name: "data"
-  type: "Data"
+  type: "ImageData"
   top: "data"
   top: "label"
   include {
@@ -10,11 +11,19 @@ layer {
   transform_param {
     mirror: true
     crop_size: 227
-    mean_file: "data/ilsvrc12/imagenet_mean.binaryproto"
+    mean_file: "/home/iis/adsc/imagenet_mean.binaryproto"
+    contrast_adjustment: true
+    smooth_filtering: true
+    jpeg_compression: true
+    rotation_angle_interval: 30
+    display: true
   }
-  data_param {
-    source: "data/cifar10/cifar10_train_leveldb"
+  image_data_param {
+    source: "/home/iis/hashing/caffe-ssdh/examples/SSDH-VGG-Landmark-1024/landmark_train.txt"
     batch_size: 32
+    shuffle: true
+    new_height: 256
+    new_width: 256
   }
 }
 layer {
@@ -28,10 +37,10 @@ layer {
   transform_param {
     mirror: true
     crop_size: 227
-    mean_file: "data/ilsvrc12/imagenet_mean.binaryproto"
+    mean_file: "/home/iis/hashing/caffe-ssdh/data/ilsvrc12/imagenet_mean.binaryproto"
   }
   data_param {
-    source: "data/cifar10/cifar10_val_leveldb"
+    source: "/home/iis/hashing/caffe-ssdh/data/cifar10/cifar10_val_leveldb"
     batch_size: 32
   }
 }

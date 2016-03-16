@@ -1,6 +1,4 @@
-net: "./examples/SSDH/train_val.prototxt"
-test_iter: 100
-test_interval: 100
+net: "train_val.prototxt"
 base_lr: 0.001
 lr_policy: "step"
 gamma: 0.1
@@ -10,4 +8,4 @@ max_iter: 50000
 momentum: 0.9
 weight_decay: 0.0005
 snapshot: 10000
-snapshot_prefix: "./examples/SSDH/SSDH48"
+snapshot_prefix: "SSDH48"
