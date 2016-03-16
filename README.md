@@ -1,13 +1,14 @@
 # caffe-augmentation
 
-Caffe with real-time data augmentation on-the-fly!
+Caffe with real-time data augmentation on-the-fly!!!
 
 Created by Kevin Lin at Academia Sinica, Taipei, Taiwan.
 
 
 ## Introduction
-Data augmentation is a simple yet effective way to enrich training data. However, we don't want to re-create a dataset (such as ImageNet) with more than millions of images every time when we change our augmentation strategy. To address this problem, this project provides real-time training data augmentation. During training, caffe will augment training data with random combination of different Geometric transformations (scaling, rotation, cropping), image variations (blur, sharping, JPEG compression), and lighting adjustments.
-<img src="https://www.csie.ntu.edu.tw/~r01944012/bb.gif" width="800">
+Data augmentation is a simple yet effective way to enrich training data. However, we don't want to re-create a dataset (such as ImageNet) with more than millions of images every time when we change our augmentation strategy. To address this problem, this project provides real-time training data augmentation. During training, caffe will augment training data with random combination of different geometric transformations (scaling, rotation, cropping), image variations (blur, sharping, JPEG compression), and lighting adjustments.
+
+<img src="https://www.csie.ntu.edu.tw/~r01944012/bb.gif" width="500">
 
 
 ## Realtime data augmentation
