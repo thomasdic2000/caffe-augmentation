@@ -258,10 +258,6 @@ void DataTransformer<Dtype>::Transform(const cv::Mat& img,
   CHECK_GE(img_height, crop_size);
   CHECK_GE(img_width, crop_size);
 
-  
-  // param for scaling
-  const float min_scaling_factor = param_.min_scaling_factor();
-  const float max_scaling_factor = param_.max_scaling_factor();
   // param for rotation
   const float rotation_angle_interval = param_.rotation_angle_interval();
 
@@ -336,22 +332,49 @@ void DataTransformer<Dtype>::Transform(const cv::Mat& img,
       cv::imshow("JPEG Compression", cv_img);
   }
 
+  // Cropping -------------------------------------------------------------
+  int h_off = 0;
+  int w_off = 0;
+  cv::Mat cv_cropped_img = cv_img;
+  if (crop_size) {
+    CHECK_EQ(crop_size, height);
+    CHECK_EQ(crop_size, width);
+    // We only do random crop when we do training.
+    if (phase_ == TRAIN) {
+      h_off = Rand(img_height - crop_size + 1);
+      w_off = Rand(img_width - crop_size + 1);
+    } else {
+      h_off = (img_height - crop_size) / 2;
+      w_off = (img_width - crop_size) / 2;
+    }
+    cv::Rect roi(w_off, h_off, crop_size, crop_size);
+    cv_cropped_img = cv_img(roi);
+    if (display && phase_ == TRAIN)
+    	cv::imshow("Cropping", cv_cropped_img);
+  } else {
+    CHECK_EQ(img_height, height);
+    CHECK_EQ(img_width, width);
+  }
+
+
   // Rotation -------------------------------------------------------------
+  double rotation_degree;
   if ( rotation_angle_interval!=1 ) {
   cv::Mat dst;
   int interval = 360/rotation_angle_interval;
-  int apply_rotation = rng.uniform(0,interval);
+  int apply_rotation = Rand(interval);
 
-  cv::Size dsize = cv::Size(cv_img.cols*1.5,cv_img.rows*1.5);
+  cv::Size dsize = cv::Size(cv_cropped_img.cols*1.5,cv_cropped_img.rows*1.5);
   cv::Mat resize_img = cv::Mat(dsize,CV_32S);
-  cv::resize(cv_img, resize_img,dsize);
+  cv::resize(cv_cropped_img, resize_img,dsize);
 
   cv::Point2f pt(resize_img.cols/2., resize_img.rows/2.);    
-  cv::Mat r = getRotationMatrix2D(pt, apply_rotation*rotation_angle_interval, 1.0);
+  rotation_degree = apply_rotation*rotation_angle_interval;
+  cv::Mat r = getRotationMatrix2D(pt, rotation_degree, 1.0);
   warpAffine(resize_img, dst, r, cv::Size(resize_img.cols, resize_img.rows));
 
 
-  cv::Rect myROI(resize_img.cols/6, resize_img.rows/6, cv_img.cols, cv_img.rows);
+  cv::Rect myROI(resize_img.cols/6, resize_img.rows/6, cv_cropped_img.cols, cv_cropped_img.rows);
   cv::Mat crop_after_rotate = dst(myROI);
   if (display && phase_ == TRAIN)
       cv::imshow("Rotation", crop_after_rotate);
@@ -360,39 +383,8 @@ void DataTransformer<Dtype>::Transform(const cv::Mat& img,
   crop_after_rotate.copyTo(cv_img);
   }
   
-/*
-  float angle_raw = rng.uniform(0, 360);
-  float angle_quant = rotation_angle_interval * ceil(angle_raw / rotation_angle_interval + 0.5);
-
-
-  rotate(cv_img, apply_rotation*rotation_angle_interval, cv_img);
-
-
   if (display && phase_ == TRAIN)
-      cv::imshow("Rotation", cv_img);
-*/
-
-  // Cropping and Padding -----------------------------------------------------------------  
-  /* Since in the end, we will resize the image to a fixed size (i.e. crop_size), so scaling
-   * the image will not make any difference. Therefore, we use cropping and padding to
-   * simulate scaling effect.
-   * For scaling factor > 1, we random crop the original image to simulate scaling up
-   * For scaling factor < 1, we random pad the original image to simulate scaling down
-  */
-  // scaling factor for height and width respectively
-/*
-  float sf_w = rng.uniform(min_scaling_factor, max_scaling_factor);
-  float sf_h = rng.uniform(min_scaling_factor, max_scaling_factor);
-  // ROI height and width
-  int roi_width = (int)(width * (1. / sf_w));
-  int roi_height = (int)(height * (1. / sf_h));
-  // random number for w_off and h_oof in cropPadImage function
-  unsigned int rng_w = Rand(width*10), rng_h = Rand(height*10);
-  cv::Mat img_crop_pad = cropPadImage(cv_img, roi_width, roi_height,
-	                                    rng_w, rng_h, 1);
-  if (debug_display && phase_ == TRAIN)
-      cv::imshow("Cropping and Padding", img_crop_pad);
-*/
+      cv::imshow("Final", cv_img);
 
 
   
@@ -418,12 +410,12 @@ void DataTransformer<Dtype>::Transform(const cv::Mat& img,
 	  LOG(INFO) << "* parameter for JPEG compression: ";
 	  LOG(INFO) << "  QF: " << QF;
 	}
-	//LOG(INFO) << "* parameter for cropping and padding: ";
-	//LOG(INFO) << "  sf_w: " << sf_w << ", sf_h: " << sf_h;
-	//LOG(INFO) << "  roi_width: " << roi_width << ", roi_height: " << roi_height;
-	//LOG(INFO) << "* parameter for rotation: ";
-	//LOG(INFO) << "  angle_interval: " << angle_interval;
-	//LOG(INFO) << "  angle: " << angle_quant;
+	LOG(INFO) << "* parameter for cropping: ";
+	LOG(INFO) << "  w: " << w_off << ", h: " << h_off;
+	LOG(INFO) << "  roi_width: " << crop_size << ", roi_height: " << crop_size;
+	LOG(INFO) << "* parameter for rotation: ";
+	LOG(INFO) << "  angle_interval: " << rotation_angle_interval;
+	LOG(INFO) << "  angle: " << rotation_degree;
     cvWaitKey(10);
   }
 
