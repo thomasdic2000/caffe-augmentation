@@ -1,6 +1,6 @@
 # caffe-augmentation
 
-Caffe with real-time data augmentation on-the-fly!!!
+Caffe with real-time data augmentation
 
 
 ## Introduction
@@ -49,12 +49,13 @@ You could specify your network prototxt as:
 
 You could also find a toy example at `/examples/SSDH/train_val.prototxt`
 
+Note: ImageData Layer is currently not supported in TEST mode
+
+
 ## Setup caffe-augmentation
 Adjust Makefile.config and simply run the following commands:
 
     $ make all -j8
-    $ make test -j8
-    $ make runtest -j8
 
 For a faster build, compile in parallel by doing `make all -j8` where 8 is the number of parallel threads for compilation (a good choice for the number of threads is the number of cores in your machine).
 
